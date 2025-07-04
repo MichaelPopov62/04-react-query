@@ -1,15 +1,19 @@
+/*Цей код визначає інтерфейси для TypeScript, які описують структуру даних, що використовуються у додатку для роботи з фільмами.*/
+
+//Movie описує структуру об'єкта фільму, який містить основні властивості
 export interface Movie {
-  id: number;
-  poster_path: string;
-  backdrop_path: string;
-  title: string;
-  overview: string;
-  release_date: string;
-  vote_average: number;
+  id: number; //унікальний ідентифікатор фільму
+  poster_path: string | null; //шлях до постера (може бути null, якщо постера немає)
+  backdrop_path: string | null; // шлях до фонового зображення (може бути null)
+  title: string; //назва фільму
+  overview: string; //опис
+  release_date: string; //дата виходу
+  vote_average: number; //середня оцінка користувачів
 }
+//Описує структуру відповіді API при пошуку фільмів
 export interface FetchMoviesResponse {
-  page: number;
-  results: Movie[];
-  total_pages: number;
-  total_results: number;
+  page: number; // номер поточної сторінки результатів
+  results: Movie[]; //масив об'єктів Movie — фактичні фільми на цій сторінці
+  total_pages: number; //загальна кількість сторінок з результатами
+  total_results: number; //загальна кількість знайдених фільмів
 }
