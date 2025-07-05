@@ -2,7 +2,13 @@
 
 import css from "./Loader.module.css";
 
-export default function Loader() {
-  console.log("  Loader — триває завантаження фільмів...");
-  return <p className={css.text}>Loading movies, please wait...</p>;
+// Типізація пропсів через інтерфейс
+interface LoaderProps {
+  message?: string; // повідомлення необов'язкове
+}
+
+export default function Loader({
+  message = "Loading, please wait...", //можно змінювати message  під любий тип пошуку(фото,фільм,картина)
+}: LoaderProps) {
+  return <p className={css.text}>{message}</p>;
 }

@@ -4,6 +4,5 @@ import css from "./ErrorMessage.module.css"; // Імпорт стилів з CSS
 
 // Компонент для відображення повідомлення про помилку
 export default function ErrorMessage() {
-  console.log(" Перевір запит: HTTP - помилка");
   return <p className={css.text}>There was an error, please try again...</p>;
 }
