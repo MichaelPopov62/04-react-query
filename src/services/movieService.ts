@@ -5,9 +5,15 @@
 import axios from "axios"; // Імпортую бібліотеку axios для HTTP-запитів
 
 import type { AxiosResponse } from "axios"; //Імпортую тип AxiosResponse із бібліотеки axios — для точного опису структури HTTP-відповіді
+import type { Movie } from "../types/movie"; // Імпортую тип Movie — опис моделі фільму
 
-import type { FetchMoviesResponse } from "../types/movie"; // Імпортую власний тип відповіді з API (описує, як виглядають дані про фільми)
-
+//Описує структуру відповіді API при пошуку фільмів
+export interface FetchMoviesResponse {
+  page: number; // номер поточної сторінки результатів
+  results: Movie[]; //масив об'єктів Movie — фактичні фільми на цій сторінці
+  total_pages: number; //загальна кількість сторінок з результатами
+  total_results: number; //загальна кількість знайдених фільмів
+}
 // Описую тип параметрів функції fetchMovies
 interface FetchMoviesParams {
   query: string; // Пошуковий запит (назва фільму або ключове слово)
@@ -15,7 +21,7 @@ interface FetchMoviesParams {
 }
 
 //  API ключ з файлу .env через Vite (змінна середовища)
-const API_KEY = import.meta.env.VITE_TMDB_TOKEN; // API ключ береться зі змінної  визначеної у файлі .env
+const API_TOKEN = import.meta.env.VITE_TMDB_TOKEN; // API ключ береться зі змінної  визначеної у файлі .env
 
 // Базова URL адреса для TMDB API
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -24,7 +30,10 @@ const BASE_URL = "https://api.themoviedb.org/3";
 export async function fetchMovies({
   query,
   page = 1,
-}: FetchMoviesParams): Promise<FetchMoviesResponse> {
+}: FetchMoviesParams): Promise<Movie[]> {
+  // Додаємо логування
+  // console.log("API_TOKEN:", API_TOKEN);
+  // console.log("query:", query);
   /* Відправляю GET-запит на TMDB API за адресою /search/movie для пошуку фільмів за текстовим запитом.
  Передаю параметри: api_key, query, page */
   try {
@@ -35,7 +44,7 @@ export async function fetchMovies({
           page, // сторінка з результатами
         },
         headers: {
-          Authorization: `Bearer ${API_KEY}`, // ключ доступу у заголовку
+          Authorization: `Bearer ${API_TOKEN}`, // ключ доступу у заголовку
         },
       });
     console.log(
@@ -43,7 +52,7 @@ export async function fetchMovies({
     );
 
     // функція повертає безпосередньо тіло відповіді (дані про фільми)
-    return response.data;
+    return response.data.results;
   } catch (error) {
     console.error(" Помилка під час запиту fetchMovies:", error);
     throw error;

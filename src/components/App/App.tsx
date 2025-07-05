@@ -48,22 +48,22 @@ export default function App() {
     setIsLoading(true); // Починаю показ індикатора завантаження
     setHasError(false); // Скидаю стан помилки перед новим запитом
     setMovies([]); // Роблю очищення від попередніх результатів до нового запиту
-    console.log("Список фільмів очищено перед новим пошуком");
+    // console.log("Список фільмів очищено перед новим пошуком");
 
     try {
       // Одночасно виконую запит на сервер і штучну затримку (щоб показати лоадер 1.5 сек)
-      const [response] = await Promise.all([
+      const [results] = await Promise.all([
         fetchMovies({ query }),
         delay(1500),
       ]);
       // Якщо результатів немає, виводжу помилку і очищую список
-      if (!response.results || response.results.length === 0) {
+      if (results.length === 0) {
         toast.error("No movies found for your request.");
         setMovies([]);
         return;
       }
       setMovies(
-        response.results
+        results
       ); /* Інакше оновлюється список фільмів отриманих  за результатом пошуку*/
     } catch (error) {
       // Якщо сталася помилка під час запиту —  показується повідомлення

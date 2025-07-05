@@ -10,10 +10,3 @@ export interface Movie {
   release_date: string; //дата виходу
   vote_average: number; //середня оцінка користувачів
 }
-//Описує структуру відповіді API при пошуку фільмів
-export interface FetchMoviesResponse {
-  page: number; // номер поточної сторінки результатів
-  results: Movie[]; //масив об'єктів Movie — фактичні фільми на цій сторінці
-  total_pages: number; //загальна кількість сторінок з результатами
-  total_results: number; //загальна кількість знайдених фільмів
-}
