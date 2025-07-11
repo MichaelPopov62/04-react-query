@@ -1,120 +1,90 @@
-/*головний компонент додатку для пошуку і перегляду фільмів.
-1.Забезпечує пошук фільмів за ключовим словом через API.
-2.Відображає індикатор завантаження під час очікування відповіді сервера.
-3.Відображає список знайдених фільмів у вигляді сітки.
-4.Показує повідомлення про помилки або відсутність результатів.
-5.Дозволяє вибрати фільм для перегляду.
-6.Керує відкриттям і закриттям модального вікна.
-7.Показує короткі повідомлення про статус операцій.*/
-
-import { useState } from "react"; // useState — хук React для створення стану всередині функціонального компонента.
-
-import SearchBar from "../SearchBar/SearchBar"; // Компонент пошукового рядка, який відправляє пошуковий запит.
-
-import { toast } from "react-hot-toast"; // Бібліотека для показу коротких сповіщень користувачу.
-
-import type { Movie } from "../../types/movie"; // Тип даних для фільму.
-
-import { fetchMovies } from "../../services/movieService"; // Функція, що виконує запит до API для отримання фільмів за пошуковим запитом.
-
-import MovieGrid from "../MovieGrid/MovieGrid"; // Компонент, що відображає сітку фільмів.
-
-import { Toaster } from "react-hot-toast"; //Компонент для відображення повідомлень
-
-import Loader from "../Loader/Loader"; // Компонент індикатора завантаження.
-
-import ErrorMessage from "../ErrorMessage/ErrorMessage"; // Компонент відображення помилки.
-
-import MovieModal from "../MovieModal/MovieModal"; // Компонент модального вікна з деталями про фільм.
+import { useState } from "react";
+import ReactPaginate from "react-paginate";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import SearchBar from "../SearchBar/SearchBar";
+import { toast } from "react-hot-toast";
+import type { Movie, MovieResponse } from "../../types/movie";
+import { fetchMovies } from "../../services/movieService";
+import MovieGrid from "../MovieGrid/MovieGrid";
+import { Toaster } from "react-hot-toast";
+import Loader from "../Loader/Loader";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import MovieModal from "../MovieModal/MovieModal";
+import css from "./App.module.css";
 
 export default function App() {
-  const [searchQuery, setSearchQuery] = useState(""); // Стан пошукового запиту
-  const [movies, setMovies] = useState<Movie[]>([]); // Стан списку фільмів, що відповідають пошуковому запиту
-  const [isLoading, setIsLoading] = useState(false); // Стан завантаження — показує індикатор, поки дані завантажуються
-  const [hasError, setHasError] = useState(false); // Стан помилки — true, якщо сталася помилка під час запиту
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null); // Стан обраного фільму для показу у модальному вікні
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const delay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms)); //Створив сам допоміжну функцію, що створює затримку (мілісекунди)
+  const { data, isFetching, isError, error, isSuccess } = useQuery<
+    MovieResponse,
+    Error
+  >({
+    queryKey: ["movies", searchQuery, page],
+    queryFn: () => fetchMovies({ query: searchQuery, page }),
+    enabled: searchQuery.trim() !== "",
+    retry: false,
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 5, //5 хвилин кешування я можу спокійно гуляти по іншим сторінкам і при повернення новий запит не виконується автоматично
+  });
 
-  // Функція обробки відправлення пошукового запиту з компонента SearchBar
-  const handleSearchSubmit = async (query: string) => {
-    // Якщо рядок запиту пустий після видалення пробілів — виводиться помилка і припиняється запит
-    if (!query.trim()) {
+  const handleSearchSubmit = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) {
       toast.error("Please enter your search query.");
       return;
     }
-    setSearchQuery(query); // Зберігаю поточний пошуковий запит у стан
-    setIsLoading(true); // Починаю показ індикатора завантаження
-    setHasError(false); // Скидаю стан помилки перед новим запитом
-    setMovies([]); // Роблю очищення від попередніх результатів до нового запиту
-    // console.log("Список фільмів очищено перед новим пошуком");
-
-    try {
-      // Одночасно виконую запит на сервер і штучну затримку (щоб показати лоадер 1.5 сек)
-      const [results] = await Promise.all([
-        fetchMovies({ query }),
-        delay(1500),
-      ]);
-      // Якщо результатів немає, виводжу помилку і очищую список
-      if (results.length === 0) {
-        toast.error("No movies found for your request.");
-        setMovies([]);
-        return;
-      }
-      setMovies(
-        results
-      ); /* Інакше оновлюється список фільмів отриманих  за результатом пошуку*/
-    } catch (error) {
-      // Якщо сталася помилка під час запиту —  показується повідомлення
-      console.error("Error fetching movies:", error);
-      toast.error("Error fetching movies");
-      setHasError(true);
-      setMovies([]);
-    } finally {
-      setIsLoading(false); // Завершую показ індикатора завантаження завжди
-    }
+    setSearchQuery(trimmed);
+    setPage(1);
   };
 
-  //  вибирається фільм і відкривається модалка
-  const handleSelectMovie = (movie: Movie) => {
-    setSelectedMovie(movie);
-  };
-
-  // Закриття модалки
-  const handleCloseModal = () => {
-    setSelectedMovie(null);
-  };
-  // Якщо є помилка і не йде завантаження — виводиться компонент помилки, решта коду не рендериться
-
-  if (!isLoading && hasError) {
-    return <ErrorMessage />;
-  }
+  const handleSelectMovie = (movie: Movie) => setSelectedMovie(movie);
+  const handleCloseModal = () => setSelectedMovie(null);
+  const totalPages = data?.total_pages ?? 0;
+  const movies = data?.results ?? [];
 
   return (
     <div>
-      {/*  відправка пошукового запиту */}
       <SearchBar onSubmit={handleSearchSubmit} />
-      {/* Відображуння поточного пошукового запиту */}
-      <p>Поточний запит: {searchQuery}</p>
-      {/* Якщо йде завантаження — показується Loader */}
-      {isLoading ? (
-        <Loader />
-      ) : (
-        <>
-          {/* сітку з можливістю вибрати фільм */}
-          {movies.length > 0 && (
-            <MovieGrid movies={movies} onSelect={handleSelectMovie} />
-          )}
+      {/*для помилок з сервера різного роду */}
+      {searchQuery && isError && !isFetching && (
+        <ErrorMessage
+          message={
+            error?.message || "Something went wrong. Please try again later."
+          }
+        />
+      )}
+      {/*для успішного запиту але без результату*/}
+      {!isError && isSuccess && movies.length === 0 && (
+        <ErrorMessage message="No films found. Try a different request." />
+      )}
 
-          {/* Контейнер для відображення повідомлень, центрований по горизонталі */}
-          <Toaster
-            position="top-center"
-            toastOptions={{ style: { margin: "0 auto" } }}
-          />
+      {isFetching && <Loader message="Fascination of films..." />}
+
+      {isSuccess && data.results.length > 0 && (
+        <>
+          {totalPages > 1 && (
+            <ReactPaginate
+              previousLabel="←"
+              nextLabel="→"
+              onPageChange={({ selected }) => setPage(selected + 1)}
+              pageRangeDisplayed={5}
+              pageCount={totalPages}
+              forcePage={page - 1}
+              marginPagesDisplayed={1}
+              containerClassName={css.pagination}
+              activeClassName={css.active}
+            />
+          )}
+          <MovieGrid movies={data.results} onSelect={handleSelectMovie} />
         </>
       )}
-      {/* Якщо вибрано фільм, виводиться модальне вікно з деталями */}
+
+      <Toaster
+        position="top-center"
+        toastOptions={{ style: { margin: "0 auto" } }}
+      />
 
       {selectedMovie && (
         <MovieModal movie={selectedMovie} onClose={handleCloseModal} />

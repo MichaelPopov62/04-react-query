@@ -1,8 +1,9 @@
-/*ErrorMessage — відображає повідомлення про помилку у випадку невдалого HTTP-запиту.*/
+import css from "./ErrorMessage.module.css";
 
-import css from "./ErrorMessage.module.css"; // Імпорт стилів з CSS-модуля
+interface ErrorMessageProps {
+  message: string;
+}
 
-// Компонент для відображення повідомлення про помилку
-export default function ErrorMessage() {
-  return <p className={css.text}>There was an error, please try again...</p>;
+export default function ErrorMessage({ message }: ErrorMessageProps) {
+  return <p className={css.text}>{message}</p>;
 }

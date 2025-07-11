@@ -3,19 +3,21 @@
 2.Створює React root (кореневий елемент)
 3.Рендерить додаток всередину DOM */
 
-import "modern-normalize/modern-normalize.css"; // Підключаю modern-normalize — нормалізує стилі між різними браузерами
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import "modern-normalize/modern-normalize.css";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./components/App/App";
 
-import { StrictMode } from "react"; // Імпортую StrictMode — спеціальний компонент для перевірки потенційних проблем у додатку під час розробки
-
-import { createRoot } from "react-dom/client"; // Функція createRoot використовується для створення React root
-
-import "./index.css"; // Підключаю власні глобальні стилі для проєкту
-
-import App from "./components/App/App"; // Імпортую головний компонент App
+const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </StrictMode>
 );
-// console.log("API_KEY:", import.meta.env.VITE_TMDB_TOKEN);
