@@ -11,11 +11,9 @@ interface MovieModalProps {
 export default function MovieModal({ movie, onClose }: MovieModalProps) {
   useEffect(() => {
     if (!movie) return;
-    console.log(" Модалка відкрита. Додається  слухач та блокуємо скрол.");
 
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        console.log(" Натиснуто Escape. Закривається  модалка.");
         onClose();
       }
     };
@@ -25,10 +23,6 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
     document.body.style.overflow = "hidden";
 
     return () => {
-      console.log(
-        "Модалка закрита. Видаляється слухач та відновлюється скрол."
-      );
-
       document.removeEventListener("keydown", handleEsc);
 
       document.body.style.overflow = "";
@@ -46,7 +40,6 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
       aria-modal="true"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          console.log(" Клік по бекдропу. Закривається модалка.");
           onClose();
         }
       }}
@@ -55,7 +48,6 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
         <button
           className={css.closeButton}
           onClick={() => {
-            console.log("Клік по хрестику. Закривається модалка.");
             onClose();
           }}
           aria-label="Close modal"

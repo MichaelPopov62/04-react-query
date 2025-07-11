@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactPaginate from "react-paginate";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import SearchBar from "../SearchBar/SearchBar";
 import { toast } from "react-hot-toast";
-import type { Movie, MovieResponse } from "../../types/movie";
+import type { Movie } from "../../types/movie";
+import type { MovieResponse } from "../../services/movieService";
 import { fetchMovies } from "../../services/movieService";
 import MovieGrid from "../MovieGrid/MovieGrid";
 import { Toaster } from "react-hot-toast";
@@ -29,6 +30,8 @@ export default function App() {
     staleTime: 1000 * 60 * 5, //5 хвилин кешування я можу спокійно гуляти по іншим сторінкам і при повернення новий запит не виконується автоматично
   });
 
+  const totalPages = data?.total_pages ?? 0;
+
   const handleSearchSubmit = (query: string) => {
     const trimmed = query.trim();
     if (!trimmed) {
@@ -41,8 +44,22 @@ export default function App() {
 
   const handleSelectMovie = (movie: Movie) => setSelectedMovie(movie);
   const handleCloseModal = () => setSelectedMovie(null);
-  const totalPages = data?.total_pages ?? 0;
-  const movies = data?.results ?? [];
+
+  useEffect(() => {
+    const movies = data?.results ?? [];
+    if (isSuccess && movies.length === 0) {
+      toast("No films found. Try a different request.", {
+        style: {
+          background: "#FFF",
+          color: "#d32f2f",
+          borderRadius: "8px",
+          padding: "12px 16px",
+          fontWeight: "bold",
+          textAlign: "center",
+        },
+      });
+    }
+  }, [isSuccess, data?.results]);
 
   return (
     <div>
@@ -54,10 +71,6 @@ export default function App() {
             error?.message || "Something went wrong. Please try again later."
           }
         />
-      )}
-      {/*для успішного запиту але без результату*/}
-      {!isError && isSuccess && movies.length === 0 && (
-        <ErrorMessage message="No films found. Try a different request." />
       )}
 
       {isFetching && <Loader message="Fascination of films..." />}
